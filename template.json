@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "os_version": "1.5.0",
+    "iso_checksum": "4ebb4d7ae2732482dade8131b1b6425ff1bc4a9122a318d97cdc831bd64b400c",
+    "ssh_username": "rancher",
+    "ssh_password": "rancher",
+    "project_directory": "/home/rancher/project"
+  },
+  "builders":[
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Linux_64",
+      "iso_url": "https://github.com/rancherio/os/releases/download/v{{user `os_version`}}/rancheros.iso",
+      "iso_checksum": "{{user `iso_checksum` }}",
+      "iso_checksum_type": "sha256",
+      "boot_command": [
+        "<wait>",
+        "sudo ros install -d /dev/sda --append \"rancher.password={{user `ssh_password`}}\"<enter>",
+        "y<enter>",
+        "<wait5>",
+        "y<enter>",
+        "<wait10><wait10><wait10>"
+      ],
+      "ssh_wait_timeout": "30s",
+      "ssh_username": "{{user `ssh_username` }}",
+      "ssh_password": "{{user `ssh_password` }}",
+      "shutdown_command": "sudo shutdown -h now",
+      "boot_wait": "30s",
+      "bundle_iso": true,
+      "format": "ova",
+      "guest_additions_mode": "disable",
+      "memory": 1024,
+      "cpus": 2,
+      "disk_size": "16000",
+      "headless": false,
+      "hard_drive_interface": "sata",
+      "hard_drive_nonrotational": true,
+      "iso_interface": "sata"
+    }
+  ],
+  "provisioners":[
+    {
+      "type": "shell",
+      "script": "./provision.sh"
+    },
+    {
+      "type": "file",
+      "source": "./hooks.json",
+      "destination": "{{user `project_directory` }}/hooks.json"
+    },
+    {
+      "type": "file",
+      "source": "./deploy.sh",
+      "destination": "{{user `project_directory` }}/deploy.sh"
+    }
+  ],
+  "post-processors": []
+}
